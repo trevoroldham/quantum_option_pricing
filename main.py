@@ -1,5 +1,6 @@
 import argparse
-from src.qae_pricer import QuantumEuropeanCall
+#from src.qae_pricer import QuantumEuropeanCall
+from src.qae_pricer import QuantumEuropeanOption
 
 def main():
     # 1. Initialize the Argument Parser
@@ -25,6 +26,10 @@ def main():
     parser.add_argument('--error', type=float, default=0.01, 
                         help='Target error tolerance for IAE (default: 0.01)')
 
+    #4. Specify Put or Call
+    parser.add_argument('--type', type=str, default='call', choices=['call', 'put'], 
+                        help='Type of option contract: "call" or "put" (default: call)')
+    
     # 4. Parse the inputs from the terminal
     args = parser.parse_args()
 
@@ -43,13 +48,14 @@ def main():
     print("Initializing quantum circuit and executing IAE...\n")
 
     # 5. Initialize the Pricing Class
-    pricer = QuantumEuropeanCall(
+    pricer = QuantumEuropeanOption(
         spot_price=args.spot,
         strike_price=args.strike,
         volatility=args.vol,
         risk_free_rate=args.rate,
         maturity_years=maturity_years,
-        num_qubits=args.qubits
+        num_qubits=args.qubits,
+        option_type = args.type
     )
 
     # 6. Run the calculation
