@@ -39,8 +39,8 @@ class QuantumEuropeanOption:
         # Branch the Payoff Logic
         if self.option_type == 'call':
             # Call Payoff: max(S - K, 0)
-            payoff_slope = [0,1],
-            payoff_offset = [0,0],
+            payoff_slope = [0,1]
+            payoff_offset = [0,0]
             payoff_image = (0, self.high - self.K)
         else:
             # Put Payoff: max(K - S, 0)

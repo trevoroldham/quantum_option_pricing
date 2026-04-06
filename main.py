@@ -26,9 +26,13 @@ def main():
     parser.add_argument('--error', type=float, default=0.01, 
                         help='Target error tolerance for IAE (default: 0.01)')
 
+    parser.add_argument('--alpha', type=float, default=0.05, 
+                        help='Significance level (e.g., 0.05 means 95% confidence) (default: 0.05)')
+
     #4. Specify Put or Call
     parser.add_argument('--type', type=str, default='call', choices=['call', 'put'], 
                         help='Type of option contract: "call" or "put" (default: call)')
+    
     
     # 4. Parse the inputs from the terminal
     args = parser.parse_args()
@@ -59,7 +63,8 @@ def main():
     )
 
     # 6. Run the calculation
-    price = pricer.calculate_price(target_error=args.error)
+    # Update this line to pass both error and alpha
+    price = pricer.calculate_price(target_error=args.error, confidence=args.alpha)
     
     print("="*50)
     print(f"✅ ESTIMATED PREMIUM: ${price:.4f}")
