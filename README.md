@@ -20,36 +20,49 @@ The repository is organized following clean-code principles for modular quantita
 * `src/qae_pricer.py`: **The Core Engine.** Encapsulates the `QuantumEuropeanCall` class, handling circuit construction, `EstimationProblem` mapping, and IAE execution.
 * `main.py`: **The Entry Point.** Defines market parameters (Spot, Strike, Volatility, T) and triggers the quantum simulation.
 * `.venv/`: **Isolated Environment.** Optimized for the Qiskit 1.x ecosystem.
-
+* `app.py`: **User Interface** Streamlit web application for simplified user experience
 ## 🚀 Getting Started
 
 ### 1. Environment Setup
 Clone the repository and initialize the virtual environment:
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate  # Mac/Linux
 ```
 
 ### Install Dependencies
 ```bash
-pip install qiskit qiskit-finance qiskit-aer qiskit-algorithms numpy
+pip install -r requirements.txt
 ```
 
-### Usage
-Configure your market parameters in main.py and run:
+## 🛠 CLI Arguments & Usage
+
+The pricing engine can be configured via the terminal using the following flags:
+
+### Required Arguments
+* **`--spot`**: The current market price of the underlying asset (e.g., `13.50`).
+* **`--strike`**: The strike price specified in the option contract (e.g., `18.00`).
+
+### Market Parameters
+* **`--type`**: The type of option contract. Choices are `call` or `put`. (Default: `call`).
+* **`--days`**: The number of days remaining until the option's expiration. (Default: `1.0`).
+* **`--vol`**: The annualized implied volatility of the underlying asset, expressed as a decimal (e.g., `0.85` for 85%). (Default: `0.85`).
+* **`--rate`**: The annualized risk-free interest rate (e.g., `0.045` for 4.5%). (Default: `0.045`).
+
+### Quantum Algorithmic Settings
+* **`--qubits`**: The number of qubits used to represent the price distribution. Increasing this increases the discretization resolution ($2^n$ bins). (Default: `5`).
+* **`--error`**: The target error tolerance ($\epsilon$) for the Iterative Amplitude Estimation (IAE) algorithm. (Default: `0.01`).
+* **`--alpha`**: The significance level ($\alpha$) for the confidence interval (e.g., `0.05` for a 95% confidence level). (Default: `0.05`).
+
+### Example Usage
 ```bash
-python main.py
+python3 main.py --spot 13.50 --strike 18.00 --days 30 --vol 0.85 --qubits 8 --error 0.001
 ```
 
 ## ⚖️ Key Technical Features
 * **Dynamic Domain Mapping:** Automatically scales the quantum "sandbox" to ensure strike prices remain within the circuit's field of view, even at low time-to-maturity.
 * **Ancilla Management:** Dynamically allocates "scratchpad" qubits to handle the linear rotations required for the option's hockey-stick payoff.
 * **Post-Processing:** Implements automated rescaling and inverse-probability mapping to convert quantum amplitudes back into USD values.
-
-## 📈 Financial Analysis (Case Study: RGTI)
-In the included demo, the engine is tuned to model a high-volatility tech equity (**Rigetti Computing**).
-* **Scenario:** Pricing an $18.00 Strike Call with high IV (85%).
-* **Quantum Resolution:** Demonstrates high-fidelity pricing (up to 7-qubit discretization) to accurately capture Theta decay as the contract approaches expiration.
 
 ---
 ### Future Roadmap
