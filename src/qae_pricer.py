@@ -19,16 +19,14 @@ class QuantumEuropeanOption:
         if self.option_type not in ['call', 'put']:
             raise ValueError("option_type must be either 'call' or 'put'")
         
-        # 1. Distribution Math
+        # 1. Distribution Math (Log-Normal parameters)
         self.mu = ((self.r - 0.5 * self.vol**2) * self.T + np.log(self.S0))
         self.sigma = self.vol * np.sqrt(self.T)
-        self.mean = np.exp(self.mu + self.sigma**2 / 2)
-        self.variance = (np.exp(self.sigma**2) - 1) * np.exp(2 * self.mu + self.sigma**2)
-        self.stddev = np.sqrt(self.variance)
         
-        # 2. Dynamic Bounds
-        self.low = np.min([self.S0 * 0.5, self.K * 0.8])
-        self.high = np.max([self.S0 * 1.5, self.K * 1.2])
+        # 2. Dynamic Bounds (Capture 3 Standard Deviations - ~99.7% of the curve)
+        # We use a small buffer above 0 for the low bound to prevent log(0) errors
+        self.low = np.maximum(1e-4, np.exp(self.mu - 3 * self.sigma))
+        self.high = np.exp(self.mu + 3 * self.sigma)
 
     def calculate_price(self, target_error=0.01, confidence=0.05):
         # Build the shared Probability Distribution
@@ -49,7 +47,8 @@ class QuantumEuropeanOption:
             payoff_image = (0, self.K - self.low)
 
         # Build the Payoff Function
-        c_rescale = 0.1 
+        # c_rescale = 0.25 is Qiskit's standard for better Taylor/Sine approximation
+        c_rescale = 0.25 
         payoff_function = LinearAmplitudeFunction(
             self.num_qubits,
             slope=payoff_slope,
@@ -82,4 +81,9 @@ class QuantumEuropeanOption:
         )
         
         result = iae.estimate(problem)
-        return result.estimation_processed
+        
+        # 3. Present Value Discounting (CRITICAL FIX)
+        expected_future_payoff = result.estimation_processed
+        present_value = expected_future_payoff * np.exp(-self.r * self.T)
+        
+        return present_value
